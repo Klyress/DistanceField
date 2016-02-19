@@ -13,7 +13,7 @@ struct D3DContext
 	ID3D11Texture2D*		m_pBackBuffer;
 	ID3D11Texture2D*		m_pWorkBuffer[2];
 	ID3D11Texture2D*		m_pRNGStateBuffer[2];
-	ID3D11Texture2D*		m_pDepthBuffer;
+	ID3D11Texture2D*		m_pDepthBuffer[2];
 
 	std::vector<IDXGIAdapter1*>	m_pAdapters;
 
@@ -181,8 +181,13 @@ struct D3DContext
 		}
 		m_pd3dDevices[0]->CreateTexture2D(&desc, data, &m_pRNGStateBuffer[1]);
 
+		for (unsigned int i = 0; i < desc.Width*desc.Height; i++)
+		{
+			initialData[i] = D3D10_FLOAT32_MAX;
+		}
 		desc.Format = DXGI_FORMAT_R32_TYPELESS;
-		m_pd3dDevices[0]->CreateTexture2D(&desc, NULL, &m_pDepthBuffer);
+		m_pd3dDevices[0]->CreateTexture2D(&desc, data, &m_pDepthBuffer[0]);
+		m_pd3dDevices[0]->CreateTexture2D(&desc, data, &m_pDepthBuffer[1]);
 
 		//m_pd3dDevice->CreateTexture2D(&desc, NULL, &m_pRNGStateBuffer[0]);
 		//m_pd3dDevice->CreateTexture2D(&desc, NULL, &m_pRNGStateBuffer[1]);

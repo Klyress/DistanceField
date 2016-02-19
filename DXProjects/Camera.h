@@ -40,6 +40,22 @@ public:
 		// Todo: implement it again
 	}
 
+	void ZoomCamera(float speedFactor = 1.0f)
+	{
+		float speed = m_objDistance * speedFactor * 0.2f;
+		if (speed > 0.1f)
+		{
+			speed = 0.1f;
+		}
+		m_eye = m_eye + m_dir * speed;
+		UpdateCamera();
+	}
+
+	float GetResolutionFactor()
+	{
+		return sin(m_fov / m_viewportWidth);
+	}
+
 	void UpdateCamera()
 	{
 		m_dir = (m_lookAt - m_eye).Normalize();
@@ -70,6 +86,7 @@ public:
 	T m_viewportWidth;
 	T m_viewportHeight;
 	T m_fov;
+	T m_objDistance;
 };
 
 template<typename T>

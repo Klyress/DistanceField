@@ -404,17 +404,24 @@ void Render()
 
 	texture<unorm_4, 2> source = make_texture<unorm_4, 2>(dxView, context.m_pWorkBuffer[pingPong]);
 	texture<unorm_4, 2> dest = make_texture<unorm_4, 2>(dxView, context.m_pWorkBuffer[1 - pingPong]);
-	texture<float, 2> depth = make_texture<float, 2>(dxView, context.m_pDepthBuffer);
+	texture<float, 2> depthSource = make_texture<float, 2>(dxView, context.m_pDepthBuffer[pingPong]);
+	texture<float, 2> depthDest = make_texture<float, 2>(dxView, context.m_pDepthBuffer[1 - pingPong]);
 	texture_view<const unorm_4, 2> sourceView(source);
 	texture_view<unorm_4, 2> destView(dest);
-	texture_view<float, 2> depthView(depth);
+	texture_view<const float, 2> depthSourceView(depthSource);
+	texture_view<float, 2> depthDestView(depthDest);
 
 	Vector3<float> eye = g_Camera->m_eye;
 	Vector3<float> leftTopPoint = g_Camera->m_leftTopPoint;
 	Vector3<float> xStep = g_Camera->m_xStep;
 	Vector3<float> yStep = g_Camera->m_yStep;
+	int width = g_Camera->m_viewportWidth;
+	int height = g_Camera->m_viewportHeight;
 
 	float w = time;
+	float resolutionFactor = g_Camera->GetResolutionFactor();
+	g_Camera->m_objDistance = MandelbulbDE(g_Camera->m_eye);
+
 
 	// let say, ambient is 0.3, 0.3, 0.3 and we have a direction light from 1, 1, 1
 	bool isShadowOn = shadowOn;
@@ -424,6 +431,8 @@ void Render()
 
 		int x = idx[1];
 		int y = idx[0];
+
+		float preZ = depthSourceView.get(index<2>(width / 2.0f, height / 2.0f));
 
 		Vector3<float> strideH = xStep * x;
 		Vector3<float> strideV = yStep * y;
@@ -439,9 +448,13 @@ void Render()
 
 		quaternion<float> p1;
 
-
 		float distance = D3D10_FLOAT32_MAX;
-		float threshold = 0.002f;
+		float threshold;
+		threshold = resolutionFactor * preZ;
+		if (threshold > 0.1f)
+		{
+			threshold = 0.1f;
+		}
 		float totalDistance = 0.0f;
 
 		int numIterate = 0;
@@ -452,8 +465,6 @@ void Render()
 		{
 			p = r.from + dir * totalDistance;
 			distance = MandelbulbDE(p);
-			//p1 = quaternion<float>(p.x, p.y, p.z, w);
-			//distance = DistanceEstimate(p1, c, qnormal);
 			totalDistance += distance;
 
 			if (totalDistance > 1000.0f) // too far to hit something
@@ -479,7 +490,7 @@ void Render()
 			Vector3<float> color(1.0f, 1.0f, 1.0f);
 
 			// cast shadow ray, using approm soft shadow
-			Vector3<float> light(50.0f, 50.0f, 50.0f);
+			Vector3<float> light(-50.0f, 50.0f, -50.0f);
 			float shadowStrength = 1.0f; // 1.0 means no shadow at all
 			if (isShadowOn)
 			{
@@ -495,15 +506,14 @@ void Render()
 			float s = pow(si, 600.0f);
 			color = color * k;
 			color = color + Vector3<float>(s, s, s);
-			//texView.set(idx, unorm4(intense, intense, intense, 1.0));
 			destView.set(idx, unorm4(color.x, color.y, color.z, 1.0f));
-			depthView.set(idx, totalDistance);
+			depthDestView.set(idx, totalDistance);
 			//texView.set(idx, unorm4(1, 1, 1, 1.0));
 		}
 		else
 		{
 			destView.set(idx, unorm4(0.0f, 0.0f, 0.0f, 1.0f));
-			depthView.set(idx, D3D10_FLOAT32_MAX);
+			depthDestView.set(idx, D3D10_FLOAT32_MAX);
 		}
 	});
 
@@ -727,18 +737,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			g_Camera->m_eye = g_Camera->m_lookAt + xLib::quaternion<float>(g_Camera->m_left, -0.01f).Rotate(g_Camera->m_eye - g_Camera->m_lookAt); g_Camera->UpdateCamera(); break;
 		case 'S':
 			g_Camera->m_eye = g_Camera->m_lookAt + xLib::quaternion<float>(g_Camera->m_left, 0.01f).Rotate(g_Camera->m_eye - g_Camera->m_lookAt); g_Camera->UpdateCamera(); break;
+		case VK_UP:g_Camera->ZoomCamera(); break;
+		case VK_DOWN:g_Camera->ZoomCamera(-1.0f); break;
 		}
 		break;
 
 	case WM_LBUTTONUP:
-		xPos = GET_X_LPARAM(lParam);
-		yPos = GET_Y_LPARAM(lParam);
-		//g_Camera->ZoomIn(xPos, yPos, 10.0);
 		break;
 
 	case WM_RBUTTONUP:
-		xPos = GET_X_LPARAM(lParam);
-		yPos = GET_Y_LPARAM(lParam);
 		//g_Camera->ZoomOut(10.0);
 		break;
 

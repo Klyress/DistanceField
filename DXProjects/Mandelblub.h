@@ -5,7 +5,7 @@ using namespace xLib;
 // it's a numerical calculation of z.length()'s differential
 
 template<typename T>
-float potential(T pos) restrict(amp)
+float potential(T pos) restrict(amp, cpu)
 {
 	T z = pos;
 	float Power = 8.0f;
@@ -32,7 +32,7 @@ float potential(T pos) restrict(amp)
 // can refer to original doc: Hypercomplex Iterations, Distance Estimation and Higher Dimensional Fractals. Theorem 2.
 
 template <typename T>
-float MandelbulbDE(T point) restrict(amp)
+float MandelbulbDE(T point) restrict(amp, cpu)
 {
 	float EPS = 0.001f;
 	float pot = potential(point);
