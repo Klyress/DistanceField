@@ -20,7 +20,7 @@ using namespace concurrency::fast_math;
 #include "Camera.h"
 
 //#include "Sea.h"
-#include "Mandelblub.h"
+#include "Mandelbox.h"
 #define MAX_LOADSTRING 100
 #define PI 3.1415926535897932f
 
@@ -228,59 +228,7 @@ float CubeDE(Vector3<float> point) restrict(amp)
 	return min(distancePt, distanceEdge);
 }
 
-float MBDistanceEstimate(Vector3<float> point) restrict(amp)
-{
-	Vector3<float> c = Vector3<float>(1.0f, 1.0f, 1.0f);
-	const float foldL = 1.0f;
-	const float foldR = 1.0f;
-	const float foldRMin = 0.5f;
-	float scale = 2.8f;
-	Vector3<float> z = point;
-	float DEFactor = scale;
-	//float m = 1.0f;
 
-	int Iterations = 12;
-	for (int i = 1; i < Iterations; i++)
-	{
-		float m = 1.0f;
-
-		if (z.x > foldL)
-		{
-			z.x = 2.0f * foldL - z.x;
-		}
-		else if (z.x < -foldL)
-		{
-			z.x = -2.0f * foldL - z.x;
-		}
-
-		if (z.y > foldL) { z.y = 2.0f * foldL - z.y; }
-		else if (z.y < -foldL) { z.y = -2.0f * foldL - z.y; }
-		if (z.z > foldL) { z.z = 2.0f * foldL - z.z; }
-		else if (z.z < -foldL) { z.z = -2.0f * foldL - z.z; }
-
-		float r2 = z * z;
-		if (r2 < foldRMin * foldRMin)
-		{
-			m = ((foldR * foldR) / (foldRMin * foldRMin));
-			z = z * m;
-			DEFactor = DEFactor * m;
-		}
-		else if (r2 < foldR * foldR)
-		{
-			m = ((foldR * foldR) / (r2 * r2));
-			z = z * m;
-			DEFactor = DEFactor * m;
-		}
-
-		z = z * scale + point;
-		DEFactor = DEFactor * scale + 1.0f;
-		//if (r2 > 100000.0f)
-		//{
-		//break;
-		//}
-	}
-	return z.Length() / abs(DEFactor);
-}
 
 
 // for debug
@@ -376,7 +324,7 @@ float castShadow(const Vector3<float>& p, const Vector3<float>& light, const flo
 		Vector3<float> pShadow = from + dir * totalDistance;
 		Vector3<float> dummy;
 		Vector3<float> n = normal;
-		distance = MBDistanceEstimate(pShadow);
+		distance = MBDE(pShadow);
 		totalDistance += distance;
 		if (distance < threshold)
 		{
@@ -420,8 +368,9 @@ void Render()
 
 	float w = time;
 	float resolutionFactor = g_Camera->GetResolutionFactor();
-	g_Camera->m_objDistance = MandelbulbDE(g_Camera->m_eye);
+	g_Camera->m_objDistance = MBDE(g_Camera->m_eye);
 
+	float threshold = g_Camera->m_objDistance * resolutionFactor;
 
 	// let say, ambient is 0.3, 0.3, 0.3 and we have a direction light from 1, 1, 1
 	bool isShadowOn = shadowOn;
@@ -449,12 +398,7 @@ void Render()
 		quaternion<float> p1;
 
 		float distance = D3D10_FLOAT32_MAX;
-		float threshold;
-		threshold = resolutionFactor * preZ;
-		if (threshold > 0.1f)
-		{
-			threshold = 0.1f;
-		}
+		
 		float totalDistance = 0.0f;
 
 		int numIterate = 0;
@@ -464,7 +408,7 @@ void Render()
 		while (numIterate < maxIteration)
 		{
 			p = r.from + dir * totalDistance;
-			distance = MandelbulbDE(p);
+			distance = MBDE(p);
 			totalDistance += distance;
 
 			if (totalDistance > 1000.0f) // too far to hit something
@@ -610,7 +554,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 			lastUpdateTime = time;
 			fps = frames * 1000 / elapseTime;
 			frames = 0;
-			wsprintf(windowStr, L"FPS = %d, Frames = %d", fps, totalFrames);
+			wsprintf(windowStr, L"FPS = %d, Frames = %d, %E", fps, totalFrames, g_Camera->GetResolutionFactor() * g_Camera->m_objDistance);
 			SetWindowText(msg.hwnd, windowStr);
 		}
 	}
