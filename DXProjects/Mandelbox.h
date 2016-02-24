@@ -2,7 +2,7 @@
 #include "vector3.h"
 using namespace xLib;
 
-float MBDE(Vector3<float> point) restrict(amp, cpu)
+float DE(Vector3<float> point) restrict(amp, cpu)
 {
 	Vector3<float> c = Vector3<float>(1.0f, 1.0f, 1.0f);
 	const float foldL = 1.0f;
@@ -62,8 +62,8 @@ float MBDE(Vector3<float> point) restrict(amp, cpu)
 
 Vector3<float> GetNormal(Vector3<float> point) restrict(amp)
 {
-	Vector3<float> normal = Vector3<float>(MBDE(point + Vector3<float>(0.001f, 0, 0)) - MBDE(point - Vector3<float>(0.001f, 0, 0)),
-		MBDE(point + Vector3<float>(0, 0.001f, 0)) - MBDE(point - Vector3<float>(0, 0.001f, 0)),
-		MBDE(point + Vector3<float>(0, 0, 0.001f)) - MBDE(point - Vector3<float>(0, 0, 0.001f))).Normalize();
+	Vector3<float> normal = Vector3<float>(DE(point + Vector3<float>(0.001f, 0, 0)) - DE(point - Vector3<float>(0.001f, 0, 0)),
+		DE(point + Vector3<float>(0, 0.001f, 0)) - DE(point - Vector3<float>(0, 0.001f, 0)),
+		DE(point + Vector3<float>(0, 0, 0.001f)) - DE(point - Vector3<float>(0, 0, 0.001f))).Normalize();
 	return normal;
 }

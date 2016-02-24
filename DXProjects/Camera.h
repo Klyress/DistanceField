@@ -53,7 +53,7 @@ public:
 
 	float GetResolutionFactor()
 	{
-		return sin(m_fov / m_viewportWidth);
+		return tan(m_fov / m_viewportWidth);
 	}
 
 	void UpdateCamera()

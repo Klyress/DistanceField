@@ -32,7 +32,7 @@ float potential(T pos) restrict(amp, cpu)
 // can refer to original doc: Hypercomplex Iterations, Distance Estimation and Higher Dimensional Fractals. Theorem 2.
 
 template <typename T>
-float MandelbulbDE(T point) restrict(amp, cpu)
+float DE(T point) restrict(amp, cpu)
 {
 	float EPS = 0.001f;
 	float pot = potential(point);
@@ -44,8 +44,8 @@ float MandelbulbDE(T point) restrict(amp, cpu)
 
 Vector3<float> GetNormal(Vector3<float> point) restrict(amp)
 {
-	Vector3<float> normal = Vector3<float>(MandelbulbDE(point + Vector3<float>(0.001f, 0, 0)) - MandelbulbDE(point - Vector3<float>(0.001f, 0, 0)),
-		MandelbulbDE(point + Vector3<float>(0, 0.001f, 0)) - MandelbulbDE(point - Vector3<float>(0, 0.001f, 0)),
-		MandelbulbDE(point + Vector3<float>(0, 0, 0.001f)) - MandelbulbDE(point - Vector3<float>(0, 0, 0.001f))).Normalize();
+	Vector3<float> normal = Vector3<float>(DE(point + Vector3<float>(0.001f, 0, 0)) - DE(point - Vector3<float>(0.001f, 0, 0)),
+		DE(point + Vector3<float>(0, 0.001f, 0)) - DE(point - Vector3<float>(0, 0.001f, 0)),
+		DE(point + Vector3<float>(0, 0, 0.001f)) - DE(point - Vector3<float>(0, 0, 0.001f))).Normalize();
 	return normal;
 }

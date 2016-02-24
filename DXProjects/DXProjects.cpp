@@ -20,7 +20,7 @@ using namespace concurrency::fast_math;
 #include "Camera.h"
 
 //#include "Sea.h"
-#include "Mandelbox.h"
+#include "Tetrahedron.h"
 #define MAX_LOADSTRING 100
 #define PI 3.1415926535897932f
 
@@ -324,7 +324,7 @@ float castShadow(const Vector3<float>& p, const Vector3<float>& light, const flo
 		Vector3<float> pShadow = from + dir * totalDistance;
 		Vector3<float> dummy;
 		Vector3<float> n = normal;
-		distance = MBDE(pShadow);
+		distance = DE(pShadow);
 		totalDistance += distance;
 		if (distance < threshold)
 		{
@@ -368,7 +368,7 @@ void Render()
 
 	float w = time;
 	float resolutionFactor = g_Camera->GetResolutionFactor();
-	g_Camera->m_objDistance = MBDE(g_Camera->m_eye);
+	g_Camera->m_objDistance = DE(g_Camera->m_eye);
 
 	float threshold = g_Camera->m_objDistance * resolutionFactor;
 
@@ -408,7 +408,7 @@ void Render()
 		while (numIterate < maxIteration)
 		{
 			p = r.from + dir * totalDistance;
-			distance = MBDE(p);
+			distance = DE(p);
 			totalDistance += distance;
 
 			if (totalDistance > 1000.0f) // too far to hit something
@@ -624,7 +624,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	GetClientRect(hWnd, &rc);
 	UINT width = rc.right - rc.left;
 	UINT height = rc.bottom - rc.top;
-	g_Camera = new RTCamera<float>(Vector3<float>(5.f, 5.0f, 0.f), Vector3<float>(0.0f, 0.0f, 0.0f), Vector3<float>(0.0f, 1.0f, 0.0f), 3.14159265f / 360.0f * 60.0f, width*DOWN_SAMPLE, height*DOWN_SAMPLE);
+	g_Camera = new RTCamera<float>(Vector3<float>(10.f, 10.0f, 0.f), Vector3<float>(0.0f, 0.0f, 0.0f), Vector3<float>(0.0f, 1.0f, 0.0f), 3.14159265f / 360.0f * 60.0f, width*DOWN_SAMPLE, height*DOWN_SAMPLE);
 
 	return TRUE;
 }

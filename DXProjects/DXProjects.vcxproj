@@ -88,6 +88,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Cube4D.h" />
     <ClInclude Include="DXProjects.h" />
     <ClInclude Include="Header.h" />
     <ClInclude Include="InitD3D.h" />
@@ -97,6 +98,7 @@
     <ClInclude Include="Sea.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="Tetrahedron.h" />
     <ClInclude Include="vector3.h" />
     <ClInclude Include="vector4.h" />
   </ItemGroup>
