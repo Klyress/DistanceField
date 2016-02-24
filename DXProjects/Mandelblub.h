@@ -9,7 +9,7 @@ float potential(T pos) restrict(amp, cpu)
 {
 	T z = pos;
 	float Power = 8.0f;
-	int Iterations = 50;
+	int Iterations = 100;
 	for (int i = 1; i < Iterations; i++)
 	{
 		float r = z.Length();
@@ -42,10 +42,10 @@ float DE(T point) restrict(amp, cpu)
 }
 
 
-Vector3<float> GetNormal(Vector3<float> point) restrict(amp)
+Vector3<float> GetNormal(Vector3<float> point, float eps) restrict(amp)
 {
-	Vector3<float> normal = Vector3<float>(DE(point + Vector3<float>(0.001f, 0, 0)) - DE(point - Vector3<float>(0.001f, 0, 0)),
-		DE(point + Vector3<float>(0, 0.001f, 0)) - DE(point - Vector3<float>(0, 0.001f, 0)),
-		DE(point + Vector3<float>(0, 0, 0.001f)) - DE(point - Vector3<float>(0, 0, 0.001f))).Normalize();
+	Vector3<float> normal = Vector3<float>(DE(point + Vector3<float>(eps, 0, 0)) - DE(point - Vector3<float>(eps, 0, 0)),
+		DE(point + Vector3<float>(0, eps, 0)) - DE(point - Vector3<float>(0, eps, 0)),
+		DE(point + Vector3<float>(0, 0, eps)) - DE(point - Vector3<float>(0, 0, eps))).Normalize();
 	return normal;
 }

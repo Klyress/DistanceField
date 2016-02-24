@@ -20,7 +20,7 @@ using namespace concurrency::fast_math;
 #include "Camera.h"
 
 //#include "Sea.h"
-#include "Tetrahedron.h"
+#include "Menger.h"
 #define MAX_LOADSTRING 100
 #define PI 3.1415926535897932f
 
@@ -38,7 +38,7 @@ INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 D3DContext context;
 RTCamera<float>* g_Camera;
 
-bool shadowOn = false;
+bool shadowOn = true;
 
 
 float Cube4DDE(Vector3<float> point) restrict(amp)
@@ -402,7 +402,7 @@ void Render()
 		float totalDistance = 0.0f;
 
 		int numIterate = 0;
-		int maxIteration = 500;
+		int maxIteration = 100;
 		bool hit = false;
 		Vector3<float> c;
 		while (numIterate < maxIteration)
@@ -425,11 +425,11 @@ void Render()
 		}
 
 		// a very cheap AO, idea from syntopia
-		float k = 1.0f - log((float)numIterate) / log((float)maxIteration);
+		float k = 1.0f - (float)numIterate / (float)maxIteration;
 
 		if (hit)
 		{
-			Vector3<float> normal = GetNormal(p);
+			Vector3<float> normal = GetNormal(p, threshold * 2.0f);
 			
 			Vector3<float> color(1.0f, 1.0f, 1.0f);
 
@@ -443,13 +443,12 @@ void Render()
 
 			Vector3<float> lightDir = (light - p).Normalize();
 			float intense = clamp(lightDir * normal, 0.0f, 1.0f);
-			Vector3<float> eyeDir = (eye - p).Normalize();
-			float si = clamp((lightDir + eyeDir).Normalize() * normal, 0.0f, 1.0f);
-			k = k*0.3f + (intense * 0.7f + pow(si, 80.0f)) * shadowStrength;
+			//Vector3<float> eyeDir = (eye - p).Normalize();
+			//float si = clamp((lightDir + eyeDir).Normalize() * normal, 0.0f, 1.0f);
+			k = k*0.5f + (intense * 0.5f) * shadowStrength;
 
-			float s = pow(si, 600.0f);
 			color = color * k;
-			color = color + Vector3<float>(s, s, s);
+			//color = color + Vector3<float>(s, s, s);
 			destView.set(idx, unorm4(color.x, color.y, color.z, 1.0f));
 			depthDestView.set(idx, totalDistance);
 			//texView.set(idx, unorm4(1, 1, 1, 1.0));
@@ -624,7 +623,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	GetClientRect(hWnd, &rc);
 	UINT width = rc.right - rc.left;
 	UINT height = rc.bottom - rc.top;
-	g_Camera = new RTCamera<float>(Vector3<float>(10.f, 10.0f, 0.f), Vector3<float>(0.0f, 0.0f, 0.0f), Vector3<float>(0.0f, 1.0f, 0.0f), 3.14159265f / 360.0f * 60.0f, width*DOWN_SAMPLE, height*DOWN_SAMPLE);
+	g_Camera = new RTCamera<float>(Vector3<float>(10.0f, 10.0f, 0.f), Vector3<float>(0.0f, 0.0f, 0.0f), Vector3<float>(0.0f, 1.0f, 0.0f), 3.14159265f / 360.0f * 60.0f, width*DOWN_SAMPLE, height*DOWN_SAMPLE);
 
 	return TRUE;
 }

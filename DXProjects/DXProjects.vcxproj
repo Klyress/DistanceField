@@ -93,6 +93,7 @@
     <ClInclude Include="Header.h" />
     <ClInclude Include="InitD3D.h" />
     <ClInclude Include="Mandelblub.h" />
+    <ClInclude Include="Menger.h" />
     <ClInclude Include="quaternion.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="Sea.h" />

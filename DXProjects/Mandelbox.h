@@ -7,13 +7,13 @@ float DE(Vector3<float> point) restrict(amp, cpu)
 	Vector3<float> c = Vector3<float>(1.0f, 1.0f, 1.0f);
 	const float foldL = 1.0f;
 	const float foldR = 1.0f;
-	const float foldRMin = 0.5f;
-	float scale = 2.8f;
+	const float foldRMin = 0.7f;
+	float scale = 2.3f;
 	Vector3<float> z = point;
 	float DEFactor = scale;
 	//float m = 1.0f;
 
-	int Iterations = 12;
+	int Iterations = 50;
 	for (int i = 1; i < Iterations; i++)
 	{
 		float m = 1.0f;
@@ -48,10 +48,6 @@ float DE(Vector3<float> point) restrict(amp, cpu)
 
 		z = z * scale + point;
 		DEFactor = DEFactor * scale + 1.0f;
-		//if (r2 > 100000.0f)
-		//{
-		//break;
-		//}
 	}
 	if (DEFactor < 0.0f)
 	{
@@ -60,10 +56,10 @@ float DE(Vector3<float> point) restrict(amp, cpu)
 	return z.Length() / DEFactor;
 }
 
-Vector3<float> GetNormal(Vector3<float> point) restrict(amp)
+Vector3<float> GetNormal(Vector3<float> point, float eps) restrict(amp)
 {
-	Vector3<float> normal = Vector3<float>(DE(point + Vector3<float>(0.001f, 0, 0)) - DE(point - Vector3<float>(0.001f, 0, 0)),
-		DE(point + Vector3<float>(0, 0.001f, 0)) - DE(point - Vector3<float>(0, 0.001f, 0)),
-		DE(point + Vector3<float>(0, 0, 0.001f)) - DE(point - Vector3<float>(0, 0, 0.001f))).Normalize();
+	Vector3<float> normal = Vector3<float>(DE(point + Vector3<float>(eps, 0, 0)) - DE(point - Vector3<float>(eps, 0, 0)),
+		DE(point + Vector3<float>(0, eps, 0)) - DE(point - Vector3<float>(0, eps, 0)),
+		DE(point + Vector3<float>(0, 0, eps)) - DE(point - Vector3<float>(0, 0, eps))).Normalize();
 	return normal;
 }

@@ -26,10 +26,10 @@ float DE(Vector3<float> point) restrict(amp, cpu)
 	return point.Length() * pow(scale, float(-n));
 }
 
-Vector3<float> GetNormal(Vector3<float> point) restrict(amp)
+Vector3<float> GetNormal(Vector3<float> point, float eps) restrict(amp)
 {
-	Vector3<float> normal = Vector3<float>(DE(point + Vector3<float>(0.001f, 0, 0)) - DE(point - Vector3<float>(0.001f, 0, 0)),
-		DE(point + Vector3<float>(0, 0.001f, 0)) - DE(point - Vector3<float>(0, 0.001f, 0)),
-		DE(point + Vector3<float>(0, 0, 0.001f)) - DE(point - Vector3<float>(0, 0, 0.001f))).Normalize();
+	Vector3<float> normal = Vector3<float>(DE(point + Vector3<float>(eps, 0, 0)) - DE(point - Vector3<float>(eps, 0, 0)),
+		DE(point + Vector3<float>(0, eps, 0)) - DE(point - Vector3<float>(0, eps, 0)),
+		DE(point + Vector3<float>(0, 0, eps)) - DE(point - Vector3<float>(0, 0, eps))).Normalize();
 	return normal;
 }
