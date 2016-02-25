@@ -20,7 +20,7 @@ using namespace concurrency::fast_math;
 #include "Camera.h"
 
 //#include "Sea.h"
-#include "Menger.h"
+#include "Mandelbox.h"
 #define MAX_LOADSTRING 100
 #define PI 3.1415926535897932f
 
@@ -429,11 +429,11 @@ void Render()
 		{
 			Vector3<float> normal = GetNormal(p, threshold * 2.0f);
 			
-			Vector3<float> color(1.0f, 1.0f, 1.0f);
+			Vector3<float> color;
 			color = GetColor(p);
 			// cast shadow ray, using approm soft shadow
 			Vector3<float> light(-50.0f, 50.0f, -50.0f);
-			float shadowStrength = 1.0f; // 1.0 means no shadow at all
+			float shadowStrength = 0.0f; // 1.0 means no shadow at all
 			if (isShadowOn)
 			{
 				shadowStrength = castShadow(p, light, threshold, normal);
@@ -528,7 +528,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	UINT lastUpdateTime = 0;
 	UINT fps = 0;
 	UINT totalFrames = 0;
-	WCHAR windowStr[32];
+	WCHAR windowStr[64];
 	// Main message loop:
 	while (WM_QUIT != msg.message)
 	{
@@ -551,7 +551,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 			lastUpdateTime = time;
 			fps = frames * 1000 / elapseTime;
 			frames = 0;
-			wsprintf(windowStr, L"FPS = %d, Frames = %d, %E", fps, totalFrames, g_Camera->GetResolutionFactor() * g_Camera->m_objDistance);
+			swprintf(windowStr, 64, L"FPS = %d, Frames = %d, Resolution = %f", fps, totalFrames, g_Camera->GetResolutionFactor() * g_Camera->m_objDistance);
 			SetWindowText(msg.hwnd, windowStr);
 		}
 	}

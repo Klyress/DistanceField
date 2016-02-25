@@ -2,7 +2,7 @@
 #include "vector3.h"
 using namespace xLib;
 
-float DE(Vector3<float> point) restrict(amp, cpu)
+float DE(Vector3<float>& point) restrict(amp, cpu)
 {
 	Vector3<float> c = Vector3<float>(1.0f, 1.0f, 1.0f);
 	const float foldL = 1.0f;
@@ -13,7 +13,7 @@ float DE(Vector3<float> point) restrict(amp, cpu)
 	float DEFactor = scale;
 	//float m = 1.0f;
 
-	int Iterations = 50;
+	int Iterations = 30;
 	for (int i = 1; i < Iterations; i++)
 	{
 		float m = 1.0f;
@@ -62,4 +62,9 @@ Vector3<float> GetNormal(Vector3<float> point, float eps) restrict(amp)
 		DE(point + Vector3<float>(0, eps, 0)) - DE(point - Vector3<float>(0, eps, 0)),
 		DE(point + Vector3<float>(0, 0, eps)) - DE(point - Vector3<float>(0, 0, eps))).Normalize();
 	return normal;
+}
+
+Vector3<float> GetColor(Vector3<float> point) restrict(amp)
+{
+	return Vector3<float>(1.0f, 1.0f, 1.0f);
 }

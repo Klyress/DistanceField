@@ -8,7 +8,7 @@ float DE(Vector3<float> point) restrict(amp, cpu)
 	int i = 0;
 	Vector3<float> z = point;
 	float t;
-	int iteration = 4;
+	int iteration = 10;
 	while (i < iteration)
 	{	
 		if (z.x < 0.0f)	z.x = -z.x;
