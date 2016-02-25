@@ -69,6 +69,11 @@ namespace xLib
 		{
 			return Vector3<T>(x*a, y*a, z*a);
 		};
+
+		Vector3 operator/ (const T a) const _GPU
+		{
+			return Vector3<T>(x/a, y/a, z/a);
+		};
 		Vector3 operator= (const Vector3<T>& a) _GPU
 		{
 			x = a.x;

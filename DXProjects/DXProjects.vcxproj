@@ -89,9 +89,11 @@
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Cube4D.h" />
+    <ClInclude Include="DERayMatcher.h" />
     <ClInclude Include="DXProjects.h" />
     <ClInclude Include="Header.h" />
     <ClInclude Include="InitD3D.h" />
+    <ClInclude Include="KaliSet.h" />
     <ClInclude Include="Mandelblub.h" />
     <ClInclude Include="Menger.h" />
     <ClInclude Include="quaternion.h" />

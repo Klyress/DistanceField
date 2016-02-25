@@ -1,5 +1,6 @@
 #pragma once
 #include "vector3.h"
+#include "KaliSet.h"
 using namespace xLib;
 
 float DE(Vector3<float> point) restrict(amp, cpu)
@@ -61,4 +62,13 @@ Vector3<float> GetNormal(Vector3<float> point, float eps) restrict(amp)
 		DE(point + Vector3<float>(0, eps, 0)) - DE(point - Vector3<float>(0, eps, 0)),
 		DE(point + Vector3<float>(0, 0, eps)) - DE(point - Vector3<float>(0, 0, eps))).Normalize();
 	return normal;
+}
+
+Vector3<float> GetColor(Vector3<float> point) restrict(amp)
+{
+	//float k = Kaliset(point);
+	//float ColorScale = 0.3f;
+	//float ColorOffset = 0.1f;
+	//return Vector3<float>(1.0f, 1.0f, 1.0f)*(k*ColorScale + ColorOffset);
+	return Vector3<float>(1.0f, 1.0f, 1.0f);
 }

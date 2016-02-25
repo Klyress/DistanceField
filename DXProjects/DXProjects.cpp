@@ -381,8 +381,6 @@ void Render()
 		int x = idx[1];
 		int y = idx[0];
 
-		float preZ = depthSourceView.get(index<2>(width / 2.0f, height / 2.0f));
-
 		Vector3<float> strideH = xStep * x;
 		Vector3<float> strideV = yStep * y;
 
@@ -432,7 +430,7 @@ void Render()
 			Vector3<float> normal = GetNormal(p, threshold * 2.0f);
 			
 			Vector3<float> color(1.0f, 1.0f, 1.0f);
-
+			color = GetColor(p);
 			// cast shadow ray, using approm soft shadow
 			Vector3<float> light(-50.0f, 50.0f, -50.0f);
 			float shadowStrength = 1.0f; // 1.0 means no shadow at all
