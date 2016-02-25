@@ -423,11 +423,11 @@ void Render()
 		}
 
 		// a very cheap AO, idea from syntopia
-		float k = 1.0f - log((float)numIterate) / log((float)maxIteration);
+		float k = 1.0f - (float)numIterate / (float)maxIteration;
 
 		if (hit)
 		{
-			Vector3<float> normal = GetNormal(p, threshold * 2.0f);
+			Vector3<float> normal = GetNormal(p, threshold);
 			
 			Vector3<float> color;
 			color = GetColor(p);
@@ -443,7 +443,7 @@ void Render()
 			float intense = clamp(lightDir * normal, 0.0f, 1.0f);
 			//Vector3<float> eyeDir = (eye - p).Normalize();
 			//float si = clamp((lightDir + eyeDir).Normalize() * normal, 0.0f, 1.0f);
-			k = k*0.5f + (intense * 0.5f) * shadowStrength;
+			k = k*0.5f;// + (intense * 0.5f) * shadowStrength;
 
 			color = color * k;
 			//color = color + Vector3<float>(s, s, s);
@@ -667,18 +667,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		
 		switch (keyCode)
 		{
-		case 'A':
-			g_Camera->m_eye = g_Camera->m_lookAt + xLib::quaternion<float>(g_Camera->m_up, 0.01f).Rotate(g_Camera->m_eye - g_Camera->m_lookAt); g_Camera->UpdateCamera(); break;
-		case 'D':
-			g_Camera->m_eye = g_Camera->m_lookAt + xLib::quaternion<float>(g_Camera->m_up, -0.01f).Rotate(g_Camera->m_eye - g_Camera->m_lookAt); g_Camera->UpdateCamera(); break;
-		case 'W': 
-			g_Camera->m_eye = g_Camera->m_lookAt + xLib::quaternion<float>(g_Camera->m_left, -0.01f).Rotate(g_Camera->m_eye - g_Camera->m_lookAt); g_Camera->UpdateCamera(); break;
-		case 'S':
-			g_Camera->m_eye = g_Camera->m_lookAt + xLib::quaternion<float>(g_Camera->m_left, 0.01f).Rotate(g_Camera->m_eye - g_Camera->m_lookAt); g_Camera->UpdateCamera(); break;
-		case VK_UP:g_Camera->ZoomCamera(); break;
-		case VK_DOWN:g_Camera->ZoomCamera(-1.0f); break;
+		//case 'A':
+		//	g_Camera->m_eye = g_Camera->m_lookAt + xLib::quaternion<float>(g_Camera->m_up, 0.01f).Rotate(g_Camera->m_eye - g_Camera->m_lookAt); g_Camera->UpdateCamera(); break;
+		//case 'D':
+		//	g_Camera->m_eye = g_Camera->m_lookAt + xLib::quaternion<float>(g_Camera->m_up, -0.01f).Rotate(g_Camera->m_eye - g_Camera->m_lookAt); g_Camera->UpdateCamera(); break;
+		//case 'W': 
+		//	g_Camera->m_eye = g_Camera->m_lookAt + xLib::quaternion<float>(g_Camera->m_left, -0.01f).Rotate(g_Camera->m_eye - g_Camera->m_lookAt); g_Camera->UpdateCamera(); break;
+		//case 'S':
+		//	g_Camera->m_eye = g_Camera->m_lookAt + xLib::quaternion<float>(g_Camera->m_left, 0.01f).Rotate(g_Camera->m_eye - g_Camera->m_lookAt); g_Camera->UpdateCamera(); break;
+		case 'W':g_Camera->ZoomCamera(); break;
+		case 'S':g_Camera->ZoomCamera(-1.0f); break;
+		case 'Q':break;
+		case 'E':break;
 		}
-		break;
+		
 
 	case WM_LBUTTONUP:
 		break;
@@ -686,7 +688,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_MOUSEMOVE:
 		xPos = GET_X_LPARAM(lParam);
 		yPos = GET_Y_LPARAM(lParam);
-		//g_Camera->RotateCamera(400 - xPos, yPos - 400);
+		g_Camera->RotateCamera(400 - xPos, yPos - 400);
 		POINT pt; pt.x = 400; pt.y = 400;
 		ClientToScreen(hWnd, &pt);
 		SetCursorPos(pt.x, pt.y);

@@ -33,11 +33,33 @@ public:
 
 		m_viewportWidth = viewportWidth;
 		m_viewportHeight = viewportHeight;
+
+		m_sensitiveFactor = 5.0f;
 	};
 
 	void RotateCamera(float yaw, float pitch)
 	{
-		// Todo: implement it again
+		if (fabs(yaw) > 100.0f || fabs(pitch) > 100.0f)
+			return;
+
+		yaw /= m_sensitiveFactor;
+		pitch /= m_sensitiveFactor;
+
+		// Do yaw first, axis m_up, take yaw as degree
+		float yawR = yaw / 180.0f * 3.1415926535897932f;
+		float pitchR = pitch / 180.0f * 3.1415926535897932f;
+		quaternion<float> qYaw = quaternion<float>(m_up, yawR);
+		// rotate m_lookAt
+		m_dir = qYaw.Rotate(m_dir);
+		m_lookAt = m_eye + m_dir * 1000.0f;
+		UpdateCamera();
+
+		quaternion<float> qPitch = quaternion<float>(m_left, pitchR);
+		// rotate m_lookAt
+		m_dir = qPitch.Rotate(m_dir);
+		m_up = qPitch.Rotate(m_up);
+		m_lookAt = m_eye + m_dir * 1000.0f;
+		UpdateCamera();
 	}
 
 	void ZoomCamera(float speedFactor = 1.0f)
@@ -53,7 +75,7 @@ public:
 
 	float GetResolutionFactor()
 	{
-		return tan(m_fov / m_viewportWidth);
+		return tan(m_fov / m_viewportHeight);
 	}
 
 	void UpdateCamera()
@@ -87,6 +109,7 @@ public:
 	T m_viewportHeight;
 	T m_fov;
 	T m_objDistance;
+	T m_sensitiveFactor;
 };
 
 template<typename T>

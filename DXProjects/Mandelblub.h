@@ -49,3 +49,8 @@ Vector3<float> GetNormal(Vector3<float> point, float eps) restrict(amp)
 		DE(point + Vector3<float>(0, 0, eps)) - DE(point - Vector3<float>(0, 0, eps))).Normalize();
 	return normal;
 }
+
+Vector3<float> GetColor(Vector3<float> point) restrict(amp)
+{
+	return Vector3<float>(1.0f, 1.0f, 1.0f);
+}
