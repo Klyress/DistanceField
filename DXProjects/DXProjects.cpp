@@ -20,7 +20,7 @@ using namespace concurrency::fast_math;
 #include "Camera.h"
 
 //#include "Sea.h"
-#include "Mandelbox.h"
+#include "Mandelblub.h"
 #define MAX_LOADSTRING 100
 #define PI 3.1415926535897932f
 
@@ -38,7 +38,7 @@ INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 D3DContext context;
 RTCamera<float>* g_Camera;
 
-bool shadowOn = true;
+bool shadowOn = false;
 
 
 float Cube4DDE(Vector3<float> point) restrict(amp)
@@ -423,7 +423,7 @@ void Render()
 		}
 
 		// a very cheap AO, idea from syntopia
-		float k = 1.0f - (float)numIterate / (float)maxIteration;
+		float k = 1.0f - log((float)numIterate) / log((float)maxIteration);
 
 		if (hit)
 		{
@@ -433,7 +433,7 @@ void Render()
 			color = GetColor(p);
 			// cast shadow ray, using approm soft shadow
 			Vector3<float> light(-50.0f, 50.0f, -50.0f);
-			float shadowStrength = 0.0f; // 1.0 means no shadow at all
+			float shadowStrength = 1.0f; // 1.0 means no shadow at all
 			if (isShadowOn)
 			{
 				shadowStrength = castShadow(p, light, threshold, normal);
@@ -537,11 +537,8 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
-		else
-		{
-			totalFrames++;
-			Render();
-		}
+		totalFrames++;
+		Render();
 		time = GetTickCount();
 		elapseTime = time - lastUpdateTime;
 		frames++;
@@ -684,6 +681,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 
 	case WM_LBUTTONUP:
+		break;
+
+	case WM_MOUSEMOVE:
+		xPos = GET_X_LPARAM(lParam);
+		yPos = GET_Y_LPARAM(lParam);
+		//g_Camera->RotateCamera(400 - xPos, yPos - 400);
+		POINT pt; pt.x = 400; pt.y = 400;
+		ClientToScreen(hWnd, &pt);
+		SetCursorPos(pt.x, pt.y);
 		break;
 
 	case WM_RBUTTONUP:
