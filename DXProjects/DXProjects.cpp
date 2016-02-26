@@ -354,10 +354,14 @@ void Render()
 	texture<unorm_4, 2> dest = make_texture<unorm_4, 2>(dxView, context.m_pWorkBuffer[1 - pingPong]);
 	texture<float, 2> depthSource = make_texture<float, 2>(dxView, context.m_pDepthBuffer[pingPong]);
 	texture<float, 2> depthDest = make_texture<float, 2>(dxView, context.m_pDepthBuffer[1 - pingPong]);
+	texture<float, 2> miniSource = make_texture<float, 2>(dxView, context.m_pMiniWorkBuffer[pingPong]);
+	texture<float, 2> miniDest = make_texture<float, 2>(dxView, context.m_pMiniWorkBuffer[1 - pingPong]);
 	texture_view<const unorm_4, 2> sourceView(source);
 	texture_view<unorm_4, 2> destView(dest);
 	texture_view<const float, 2> depthSourceView(depthSource);
 	texture_view<float, 2> depthDestView(depthDest);
+	texture_view<const float, 2> miniSourceView(miniSource);
+	texture_view<float, 2> miniDestView(miniDest);
 
 	Vector3<float> eye = g_Camera->m_eye;
 	Vector3<float> leftTopPoint = g_Camera->m_leftTopPoint;
@@ -370,8 +374,76 @@ void Render()
 	float resolutionFactor = g_Camera->GetResolutionFactor();
 	g_Camera->m_objDistance = DE(g_Camera->m_eye);
 
-	float threshold = g_Camera->m_objDistance * resolutionFactor;
+	float threshold = g_Camera->m_objDistance * resolutionFactor * 10.0f;
+	if (threshold < 0.000001f)
+	{
+		threshold = 0.000001f;
+	}
+	// first pass, fast low resolution z buffer generated
+	parallel_for_each(miniDestView.extent,
+		[=](index<2> idx) restrict(amp)
+	{
+		int x = idx[1];
+		int y = idx[0];
 
+		Vector3<float> strideH = xStep * x * 2; // skip due to low resolution
+		Vector3<float> strideV = yStep * y * 2;
+
+		Ray<float> r;
+		r.from = eye;
+		r.to = leftTopPoint - strideH - strideV;
+		Vector3<float> dir = r.getDirection();
+		Vector3<float> p;
+
+		Vector3<float> normal;
+		quaternion<float> qnormal;
+
+		quaternion<float> p1;
+
+		float distance = D3D10_FLOAT32_MAX;
+
+		float totalDistance = 0.0f;
+
+		int numIterate = 0;
+		int maxIteration = 200;
+		bool hit = false;
+		Vector3<float> c;
+		while (numIterate < maxIteration)
+		{
+			p = r.from + dir * totalDistance;
+			distance = DE(p);
+			totalDistance += distance;
+
+			if (totalDistance > 1000.0f) // too far to hit something
+			{
+				break;
+			}
+
+			if (distance < threshold)
+			{
+				hit = true;
+				break;
+			}
+			numIterate++;
+		}
+
+		if (hit)
+		{
+			miniDestView.set(idx, totalDistance);
+		}
+		else
+		{
+			miniDestView.set(idx, D3D10_FLOAT32_MAX);
+		}
+		
+	});
+
+	texture_view<const float, 2> miniDepthView(miniDest);
+	threshold = g_Camera->m_objDistance * resolutionFactor;
+	if (threshold < 0.000001f)
+	{
+		threshold = 0.000001f;
+	}
 	// let say, ambient is 0.3, 0.3, 0.3 and we have a direction light from 1, 1, 1
 	bool isShadowOn = shadowOn;
 	parallel_for_each(dest.extent,
@@ -395,33 +467,35 @@ void Render()
 
 		quaternion<float> p1;
 
+		float z = miniDepthView.get(idx / 2);
+
 		float distance = D3D10_FLOAT32_MAX;
-		
-		float totalDistance = 0.0f;
-
 		int numIterate = 0;
-		int maxIteration = 100;
+		int maxIteration = 200;
 		bool hit = false;
-		Vector3<float> c;
-		while (numIterate < maxIteration)
+		float totalDistance = z;
+		if (z != D3D10_FLOAT32_MAX)
 		{
-			p = r.from + dir * totalDistance;
-			distance = DE(p);
-			totalDistance += distance;
 
-			if (totalDistance > 1000.0f) // too far to hit something
+			while (numIterate < maxIteration)
 			{
-				break;
-			}
+				p = r.from + dir * totalDistance;
+				distance = DE(p);
+				totalDistance += distance;
 
-			if (distance < threshold)
-			{
-				hit = true;
-				break;
+				if (totalDistance > 1000.0f) // too far to hit something
+				{
+					break;
+				}
+
+				if (distance < threshold)
+				{
+					hit = true;
+					break;
+				}
+				numIterate++;
 			}
-			numIterate++;
 		}
-
 		// a very cheap AO, idea from syntopia
 		float k = 1.0f - (float)numIterate / (float)maxIteration;
 
@@ -443,7 +517,7 @@ void Render()
 			float intense = clamp(lightDir * normal, 0.0f, 1.0f);
 			//Vector3<float> eyeDir = (eye - p).Normalize();
 			//float si = clamp((lightDir + eyeDir).Normalize() * normal, 0.0f, 1.0f);
-			k = k*0.5f;// + (intense * 0.5f) * shadowStrength;
+			k = k*0.3f + (intense * 0.7f) * shadowStrength;
 
 			color = color * k;
 			//color = color + Vector3<float>(s, s, s);
@@ -618,7 +692,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	GetClientRect(hWnd, &rc);
 	UINT width = rc.right - rc.left;
 	UINT height = rc.bottom - rc.top;
-	g_Camera = new RTCamera<float>(Vector3<float>(10.0f, 10.0f, 0.f), Vector3<float>(0.0f, 0.0f, 0.0f), Vector3<float>(0.0f, 1.0f, 0.0f), 3.14159265f / 360.0f * 60.0f, width*DOWN_SAMPLE, height*DOWN_SAMPLE);
+	g_Camera = new RTCamera<float>(Vector3<float>(10.0f, 10.0f, 0.f), Vector3<float>(0.0f, 0.0f, 0.0f), Vector3<float>(0.0f, 1.0f, 0.0f), 3.14159265f / 360.0f * 90.0f, width*DOWN_SAMPLE, height*DOWN_SAMPLE);
 
 	return TRUE;
 }
@@ -675,8 +749,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		//	g_Camera->m_eye = g_Camera->m_lookAt + xLib::quaternion<float>(g_Camera->m_left, -0.01f).Rotate(g_Camera->m_eye - g_Camera->m_lookAt); g_Camera->UpdateCamera(); break;
 		//case 'S':
 		//	g_Camera->m_eye = g_Camera->m_lookAt + xLib::quaternion<float>(g_Camera->m_left, 0.01f).Rotate(g_Camera->m_eye - g_Camera->m_lookAt); g_Camera->UpdateCamera(); break;
-		case 'W':g_Camera->ZoomCamera(); break;
-		case 'S':g_Camera->ZoomCamera(-1.0f); break;
+		case 'W':g_Camera->ZoomCamera( 3.0f ); break;
+		case 'S':g_Camera->ZoomCamera(-3.0f); break;
 		case 'Q':break;
 		case 'E':break;
 		}

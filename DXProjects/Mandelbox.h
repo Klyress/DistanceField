@@ -7,11 +7,12 @@ float DE(Vector3<float>& point) restrict(amp, cpu)
 	Vector3<float> c = Vector3<float>(1.0f, 1.0f, 1.0f);
 	const float foldL = 1.0f;
 	const float foldR = 1.0f;
-	const float foldRMin = 0.7f;
-	float scale = 2.3f;
+	const float foldRMin = 0.5f;
+	float scale = 2.0f;
 	Vector3<float> z = point;
 	float DEFactor = scale;
 	//float m = 1.0f;
+	float minR = 1000.0f;
 
 	int Iterations = 30;
 	for (int i = 1; i < Iterations; i++)
@@ -47,12 +48,18 @@ float DE(Vector3<float>& point) restrict(amp, cpu)
 		}
 
 		z = z * scale + point;
+		float r = z.Length();
+		if (r < minR)
+		{
+			minR = r;
+		}
 		DEFactor = DEFactor * scale + 1.0f;
 	}
 	if (DEFactor < 0.0f)
 	{
 		DEFactor = -DEFactor;
 	}
+	point.w = minR / 3.0f;
 	return z.Length() / DEFactor;
 }
 
@@ -66,5 +73,9 @@ Vector3<float> GetNormal(Vector3<float> point, float eps) restrict(amp)
 
 Vector3<float> GetColor(Vector3<float> point) restrict(amp)
 {
-	return Vector3<float>(1.0f, 1.0f, 1.0f);
+	float t = point.w - int(point.w);
+	float r = 9.0f * (1.0f - t)*t*t*t;
+	float g = 15.0f * (1.0f - t)*(1.0f - t)*t*t;
+	float b = 8.5f*(1.0f - t)*(1.0f - t)*(1 - t)*t;
+	return Vector3<float>(r, g, b);
 }
