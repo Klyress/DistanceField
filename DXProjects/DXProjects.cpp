@@ -471,10 +471,10 @@ void Render()
 
 		float distance = D3D10_FLOAT32_MAX;
 		int numIterate = 0;
-		int maxIteration = 200;
+		int maxIteration = 100;
 		bool hit = false;
 		float totalDistance = z;
-		if (z != D3D10_FLOAT32_MAX)
+		if (z < D3D10_FLOAT32_MAX)
 		{
 
 			while (numIterate < maxIteration)
@@ -501,7 +501,7 @@ void Render()
 
 		if (hit)
 		{
-			Vector3<float> normal = GetNormal(p, threshold);
+			//Vector3<float> normal = GetNormal(p, threshold);
 			
 			Vector3<float> color;
 			color = GetColor(p);
@@ -514,10 +514,10 @@ void Render()
 			}
 
 			Vector3<float> lightDir = (light - p).Normalize();
-			float intense = clamp(lightDir * normal, 0.0f, 1.0f);
+			//float intense = clamp(lightDir * normal, 0.0f, 1.0f);
 			//Vector3<float> eyeDir = (eye - p).Normalize();
 			//float si = clamp((lightDir + eyeDir).Normalize() * normal, 0.0f, 1.0f);
-			k = k*0.3f + (intense * 0.7f) * shadowStrength;
+			//k = k*0.3f + (intense * 0.7f) * shadowStrength;
 
 			color = color * k;
 			//color = color + Vector3<float>(s, s, s);
@@ -561,7 +561,9 @@ void Render()
 		[=](index<2> idx) restrict(amp)
 	{
 		unorm_4 pixel = renderView.get(idx);
+		//float z = miniDepthView.get(idx / 2);
 		texView.set(idx, pixel);
+		//texView.set(idx, unorm_4(z, z, z, 1.0f));
 	});
 #endif
 	pingPong = 1 - pingPong;

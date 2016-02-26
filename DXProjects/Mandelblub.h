@@ -62,6 +62,7 @@ Vector3<float> GetNormal(Vector3<float> point, float eps) restrict(amp)
 
 Vector3<float> GetColor(Vector3<float> point) restrict(amp)
 {
+//	return Vector3<float>(1.0f, 1.0f, 1.0f);
 	float t = point.w - int(point.w);
 	float r = 9.0f * (1.0f - t)*t*t*t;
 	float g = 15.0f * (1.0f - t)*(1.0f - t)*t*t;
