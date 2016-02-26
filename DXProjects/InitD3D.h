@@ -12,6 +12,7 @@ struct D3DContext
 	ID3D11RenderTargetView* m_pRenderTargetView = nullptr;
 	ID3D11Texture2D*		m_pBackBuffer;
 	ID3D11Texture2D*		m_pWorkBuffer[2];
+	ID3D11Texture2D*		m_pMiniWorkBuffer[2];
 	ID3D11Texture2D*		m_pRNGStateBuffer[2];
 	ID3D11Texture2D*		m_pDepthBuffer[2];
 
@@ -155,6 +156,7 @@ struct D3DContext
 		m_pd3dDevices[0]->CreateTexture2D(&desc, NULL, &m_pWorkBuffer[0]);
 		m_pd3dDevices[0]->CreateTexture2D(&desc, NULL, &m_pWorkBuffer[1]);
 
+
 		// create two r/w texture for storing RNG states
 		unsigned int* initialData = (unsigned int*)malloc(width*height*4 *4);
 
@@ -188,6 +190,11 @@ struct D3DContext
 		desc.Format = DXGI_FORMAT_R32_TYPELESS;
 		m_pd3dDevices[0]->CreateTexture2D(&desc, data, &m_pDepthBuffer[0]);
 		m_pd3dDevices[0]->CreateTexture2D(&desc, data, &m_pDepthBuffer[1]);
+
+		desc.Width = width*DOWN_SAMPLE >> 1;
+		desc.Height = height*DOWN_SAMPLE >> 1;
+		m_pd3dDevices[0]->CreateTexture2D(&desc, NULL, &m_pMiniWorkBuffer[0]);
+		m_pd3dDevices[0]->CreateTexture2D(&desc, NULL, &m_pMiniWorkBuffer[1]);
 
 		//m_pd3dDevice->CreateTexture2D(&desc, NULL, &m_pRNGStateBuffer[0]);
 		//m_pd3dDevice->CreateTexture2D(&desc, NULL, &m_pRNGStateBuffer[1]);

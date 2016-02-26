@@ -29,7 +29,7 @@ HINSTANCE hInst;								// current instance
 TCHAR szTitle[MAX_LOADSTRING];					// The title bar text
 TCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
 
-// Forward declarations of functions included in this code module:
+												// Forward declarations of functions included in this code module:
 ATOM				MyRegisterClass(HINSTANCE hInstance);
 BOOL				InitInstance(HINSTANCE, int);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
@@ -154,11 +154,11 @@ float Cube4DDE(Vector3<float> point) restrict(amp)
 	float estimateDistance = (k - point).Length();
 	//if (isVertexFinal)
 	//{
-		estimateDistance = estimateDistance - 0.2f;
-		if (estimateDistance < 0.0f)
-		{
-			estimateDistance = 0.0f;
-		}
+	estimateDistance = estimateDistance - 0.2f;
+	if (estimateDistance < 0.0f)
+	{
+		estimateDistance = 0.0f;
+	}
 	//}
 	//else
 	//{
@@ -171,7 +171,7 @@ float Cube4DDE(Vector3<float> point) restrict(amp)
 float CubeDE(Vector3<float> point) restrict(amp)
 {
 	Vector3<float> pt[8] = {
-		Vector3<float>(1.0f, 1.0f, 1.0f), 
+		Vector3<float>(1.0f, 1.0f, 1.0f),
 		Vector3<float>(-1.0f, 1.0f, 1.0f),
 		Vector3<float>(-1.0f, -1.0f, 1.0f),
 		Vector3<float>(1.0f, -1.0f, 1.0f),
@@ -342,7 +342,7 @@ void Render()
 {
 	static int pingPong = 0;
 	static int frame = 0;
-	
+
 	// map 4-d quaternion w to time, in order to draw it in 3-d space
 	static float time = 0.0f;
 
@@ -354,14 +354,10 @@ void Render()
 	texture<unorm_4, 2> dest = make_texture<unorm_4, 2>(dxView, context.m_pWorkBuffer[1 - pingPong]);
 	texture<float, 2> depthSource = make_texture<float, 2>(dxView, context.m_pDepthBuffer[pingPong]);
 	texture<float, 2> depthDest = make_texture<float, 2>(dxView, context.m_pDepthBuffer[1 - pingPong]);
-	texture<float, 2> miniSource = make_texture<float, 2>(dxView, context.m_pMiniWorkBuffer[pingPong]);
-	texture<float, 2> miniDest = make_texture<float, 2>(dxView, context.m_pMiniWorkBuffer[1 - pingPong]);
 	texture_view<const unorm_4, 2> sourceView(source);
 	texture_view<unorm_4, 2> destView(dest);
 	texture_view<const float, 2> depthSourceView(depthSource);
 	texture_view<float, 2> depthDestView(depthDest);
-	texture_view<const float, 2> miniSourceView(miniSource);
-	texture_view<float, 2> miniDestView(miniDest);
 
 	Vector3<float> eye = g_Camera->m_eye;
 	Vector3<float> leftTopPoint = g_Camera->m_leftTopPoint;
@@ -374,76 +370,12 @@ void Render()
 	float resolutionFactor = g_Camera->GetResolutionFactor();
 	g_Camera->m_objDistance = DE(g_Camera->m_eye);
 
-	float threshold = g_Camera->m_objDistance * resolutionFactor * 10.0f;
+	float threshold = g_Camera->m_objDistance * resolutionFactor;
 	if (threshold < 0.000001f)
 	{
 		threshold = 0.000001f;
 	}
-	// first pass, fast low resolution z buffer generated
-	parallel_for_each(miniDestView.extent,
-		[=](index<2> idx) restrict(amp)
-	{
-		int x = idx[1];
-		int y = idx[0];
 
-		Vector3<float> strideH = xStep * x * 2; // skip due to low resolution
-		Vector3<float> strideV = yStep * y * 2;
-
-		Ray<float> r;
-		r.from = eye;
-		r.to = leftTopPoint - strideH - strideV;
-		Vector3<float> dir = r.getDirection();
-		Vector3<float> p;
-
-		Vector3<float> normal;
-		quaternion<float> qnormal;
-
-		quaternion<float> p1;
-
-		float distance = D3D10_FLOAT32_MAX;
-
-		float totalDistance = 0.0f;
-
-		int numIterate = 0;
-		int maxIteration = 200;
-		bool hit = false;
-		Vector3<float> c;
-		while (numIterate < maxIteration)
-		{
-			p = r.from + dir * totalDistance;
-			distance = DE(p);
-			totalDistance += distance;
-
-			if (totalDistance > 1000.0f) // too far to hit something
-			{
-				break;
-			}
-
-			if (distance < threshold)
-			{
-				hit = true;
-				break;
-			}
-			numIterate++;
-		}
-
-		if (hit)
-		{
-			miniDestView.set(idx, totalDistance);
-		}
-		else
-		{
-			miniDestView.set(idx, D3D10_FLOAT32_MAX);
-		}
-		
-	});
-
-	texture_view<const float, 2> miniDepthView(miniDest);
-	threshold = g_Camera->m_objDistance * resolutionFactor;
-	if (threshold < 0.000001f)
-	{
-		threshold = 0.000001f;
-	}
 	// let say, ambient is 0.3, 0.3, 0.3 and we have a direction light from 1, 1, 1
 	bool isShadowOn = shadowOn;
 	parallel_for_each(dest.extent,
@@ -467,42 +399,40 @@ void Render()
 
 		quaternion<float> p1;
 
-		float z = miniDepthView.get(idx / 2);
-
 		float distance = D3D10_FLOAT32_MAX;
+
+		float totalDistance = 0.0f;
+
 		int numIterate = 0;
-		int maxIteration = 200;
+		int maxIteration = 100;
 		bool hit = false;
-		float totalDistance = z;
-		if (z != D3D10_FLOAT32_MAX)
+		Vector3<float> c;
+		while (numIterate < maxIteration)
 		{
+			p = r.from + dir * totalDistance;
+			distance = DE(p);
+			totalDistance += distance;
 
-			while (numIterate < maxIteration)
+			if (totalDistance > 1000.0f) // too far to hit something
 			{
-				p = r.from + dir * totalDistance;
-				distance = DE(p);
-				totalDistance += distance;
-
-				if (totalDistance > 1000.0f) // too far to hit something
-				{
-					break;
-				}
-
-				if (distance < threshold)
-				{
-					hit = true;
-					break;
-				}
-				numIterate++;
+				break;
 			}
+
+			if (distance < threshold)
+			{
+				hit = true;
+				break;
+			}
+			numIterate++;
 		}
+
 		// a very cheap AO, idea from syntopia
 		float k = 1.0f - (float)numIterate / (float)maxIteration;
 
 		if (hit)
 		{
 			Vector3<float> normal = GetNormal(p, threshold);
-			
+
 			Vector3<float> color;
 			color = GetColor(p);
 			// cast shadow ray, using approm soft shadow
@@ -517,7 +447,7 @@ void Render()
 			float intense = clamp(lightDir * normal, 0.0f, 1.0f);
 			//Vector3<float> eyeDir = (eye - p).Normalize();
 			//float si = clamp((lightDir + eyeDir).Normalize() * normal, 0.0f, 1.0f);
-			k = k*0.3f + (intense * 0.7f) * shadowStrength;
+			k = k*0.5f + (intense * 0.5f) * shadowStrength;
 
 			color = color * k;
 			//color = color + Vector3<float>(s, s, s);
@@ -565,7 +495,7 @@ void Render()
 	});
 #endif
 	pingPong = 1 - pingPong;
-//	time += 0.005f;
+	//	time += 0.005f;
 	// we got depth buffer, can do some post effect here
 
 	context.m_pSwapChain->Present(0, 0);
@@ -628,7 +558,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	}
 
 
-	return (int) msg.wParam;
+	return (int)msg.wParam;
 }
 
 
@@ -651,7 +581,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 	wcex.hInstance = hInstance;
 	wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_DXPROJECTS));
 	wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wcex.hbrBackground = (HBRUSH) (COLOR_WINDOW + 1);
+	wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 	wcex.lpszMenuName = MAKEINTRESOURCE(IDC_DXPROJECTS);
 	wcex.lpszClassName = szWindowClass;
 	wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
@@ -692,7 +622,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	GetClientRect(hWnd, &rc);
 	UINT width = rc.right - rc.left;
 	UINT height = rc.bottom - rc.top;
-	g_Camera = new RTCamera<float>(Vector3<float>(10.0f, 10.0f, 0.f), Vector3<float>(0.0f, 0.0f, 0.0f), Vector3<float>(0.0f, 1.0f, 0.0f), 3.14159265f / 360.0f * 90.0f, width*DOWN_SAMPLE, height*DOWN_SAMPLE);
+	g_Camera = new RTCamera<float>(Vector3<float>(10.0f, 10.0f, 0.f), Vector3<float>(0.0f, 0.0f, 0.0f), Vector3<float>(0.0f, 1.0f, 0.0f), 3.14159265f / 360.0f * 60.0f, width*DOWN_SAMPLE, height*DOWN_SAMPLE);
 
 	return TRUE;
 }
@@ -738,23 +668,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_KEYDOWN:
 		keyCode = wParam;
-		
+
 		switch (keyCode)
 		{
-		//case 'A':
-		//	g_Camera->m_eye = g_Camera->m_lookAt + xLib::quaternion<float>(g_Camera->m_up, 0.01f).Rotate(g_Camera->m_eye - g_Camera->m_lookAt); g_Camera->UpdateCamera(); break;
-		//case 'D':
-		//	g_Camera->m_eye = g_Camera->m_lookAt + xLib::quaternion<float>(g_Camera->m_up, -0.01f).Rotate(g_Camera->m_eye - g_Camera->m_lookAt); g_Camera->UpdateCamera(); break;
-		//case 'W': 
-		//	g_Camera->m_eye = g_Camera->m_lookAt + xLib::quaternion<float>(g_Camera->m_left, -0.01f).Rotate(g_Camera->m_eye - g_Camera->m_lookAt); g_Camera->UpdateCamera(); break;
-		//case 'S':
-		//	g_Camera->m_eye = g_Camera->m_lookAt + xLib::quaternion<float>(g_Camera->m_left, 0.01f).Rotate(g_Camera->m_eye - g_Camera->m_lookAt); g_Camera->UpdateCamera(); break;
-		case 'W':g_Camera->ZoomCamera( 3.0f ); break;
-		case 'S':g_Camera->ZoomCamera(-3.0f); break;
+			//case 'A':
+			//	g_Camera->m_eye = g_Camera->m_lookAt + xLib::quaternion<float>(g_Camera->m_up, 0.01f).Rotate(g_Camera->m_eye - g_Camera->m_lookAt); g_Camera->UpdateCamera(); break;
+			//case 'D':
+			//	g_Camera->m_eye = g_Camera->m_lookAt + xLib::quaternion<float>(g_Camera->m_up, -0.01f).Rotate(g_Camera->m_eye - g_Camera->m_lookAt); g_Camera->UpdateCamera(); break;
+			//case 'W': 
+			//	g_Camera->m_eye = g_Camera->m_lookAt + xLib::quaternion<float>(g_Camera->m_left, -0.01f).Rotate(g_Camera->m_eye - g_Camera->m_lookAt); g_Camera->UpdateCamera(); break;
+			//case 'S':
+			//	g_Camera->m_eye = g_Camera->m_lookAt + xLib::quaternion<float>(g_Camera->m_left, 0.01f).Rotate(g_Camera->m_eye - g_Camera->m_lookAt); g_Camera->UpdateCamera(); break;
+		case 'W':g_Camera->ZoomCamera(); break;
+		case 'S':g_Camera->ZoomCamera(-1.0f); break;
 		case 'Q':break;
 		case 'E':break;
 		}
-		
+
 
 	case WM_LBUTTONUP:
 		break;
@@ -795,15 +725,15 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 	switch (message)
 	{
 	case WM_INITDIALOG:
-		return (INT_PTR) TRUE;
+		return (INT_PTR)TRUE;
 
 	case WM_COMMAND:
 		if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
 		{
 			EndDialog(hDlg, LOWORD(wParam));
-			return (INT_PTR) TRUE;
+			return (INT_PTR)TRUE;
 		}
 		break;
 	}
-	return (INT_PTR) FALSE;
+	return (INT_PTR)FALSE;
 }
