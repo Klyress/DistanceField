@@ -73,6 +73,12 @@ public:
 		UpdateCamera();
 	}
 
+	void StrafeCamera(float speedFactor = 1.0f)
+	{
+		m_eye = m_eye + m_left * speedFactor * 0.2f;
+		m_lookAt = m_lookAt + m_left * speedFactor * 0.2f;
+		UpdateCamera();
+	}
 	float GetResolutionFactor()
 	{
 		return tan(m_fov / m_viewportHeight);

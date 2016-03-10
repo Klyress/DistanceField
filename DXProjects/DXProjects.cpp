@@ -20,7 +20,7 @@ using namespace concurrency::fast_math;
 #include "Camera.h"
 
 //#include "Sea.h"
-#include "Mandelblub.h"
+#include "Menger.h"
 #define MAX_LOADSTRING 100
 #define PI 3.1415926535897932f
 
@@ -38,7 +38,7 @@ INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 D3DContext context;
 RTCamera<float>* g_Camera;
 
-bool shadowOn = false;
+bool shadowOn = true;
 
 
 float Cube4DDE(Vector3<float> point) restrict(amp)
@@ -683,6 +683,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case 'S':g_Camera->ZoomCamera(-1.0f); break;
 		case 'Q':break;
 		case 'E':break;
+		case 'A':g_Camera->StrafeCamera(); break;
+		case 'D':g_Camera->StrafeCamera(-1.0f); break;
 		}
 
 
