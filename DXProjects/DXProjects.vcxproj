@@ -97,6 +97,7 @@
     <ClInclude Include="Mandelblub.h" />
     <ClInclude Include="Menger.h" />
     <ClInclude Include="quaternion.h" />
+    <ClInclude Include="RayMatchFunc.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="Sea.h" />
     <ClInclude Include="stdafx.h" />

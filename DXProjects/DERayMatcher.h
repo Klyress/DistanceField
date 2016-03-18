@@ -31,7 +31,7 @@ public:
 	}
 	void Render() 
 	{
-
+		
 	}
 
 private:
