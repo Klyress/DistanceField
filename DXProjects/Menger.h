@@ -70,5 +70,5 @@ Vector3<float> GetColor(Vector3<float> point) restrict(amp)
 	//float ColorScale = 0.3f;
 	//float ColorOffset = 0.1f;
 	//return Vector3<float>(1.0f, 1.0f, 1.0f)*(k*ColorScale + ColorOffset);
-	return Vector3<float>(1.0f, 1.0f, 1.0f);
+	return Vector3<float>(0.3f, 0.6f, 0.1f);
 }
