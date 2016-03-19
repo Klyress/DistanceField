@@ -76,7 +76,7 @@ Vector3<float> Matching(Ray<float>& ray, const float threshold, const bool isSha
 		Vector3<float> color;
 		color = GetColor(p);
 		// cast shadow ray, using approm soft shadow
-		Vector3<float> light(-50.0f, 50.0f, -50.0f);
+		Vector3<float> light(-10.0f, 10.0f, -10.0f);
 		float shadowStrength = 1.0f; // 1.0 means no shadow at all
 		if (isShadowOn)
 		{
@@ -85,14 +85,12 @@ Vector3<float> Matching(Ray<float>& ray, const float threshold, const bool isSha
 
 		Vector3<float> lightDir = (light - p).Normalize();
 		float intense = clamp(lightDir * normal, 0.0f, 1.0f);
-		//Vector3<float> eyeDir = (eye - p).Normalize();
-		//float si = clamp((lightDir + eyeDir).Normalize() * normal, 0.0f, 1.0f);
+
 		k = k*0.5f + (intense * 0.5f) * shadowStrength;
 
 		color = color * k;
 		color.w = totalDistance;
 		return color;
-		//color = color + Vector3<float>(s, s, s);
 	}
 	else
 	{

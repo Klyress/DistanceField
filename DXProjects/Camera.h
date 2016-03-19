@@ -62,6 +62,20 @@ public:
 		UpdateCamera();
 	}
 
+	void RollCamera(float roll)
+	{
+		if (fabs(roll) > 100.0f)
+			return;
+
+		roll /= m_sensitiveFactor;
+
+		float rollR = roll / 180.0f * 3.1415926535897932f;
+		quaternion<float> qRoll = quaternion<float>(m_dir, rollR);
+		m_up = qRoll.Rotate(m_up);
+		UpdateCamera();
+	}
+
+
 	void ZoomCamera(float speedFactor = 1.0f)
 	{
 		float speed = m_objDistance * speedFactor * 0.2f;

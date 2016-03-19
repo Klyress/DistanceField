@@ -39,7 +39,7 @@ INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 D3DContext context;
 RTCamera<float>* g_Camera;
 
-bool shadowOn = false;
+bool shadowOn = true;
 
 
 float Cube4DDE(Vector3<float> point) restrict(amp)
@@ -592,8 +592,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			//	g_Camera->m_eye = g_Camera->m_lookAt + xLib::quaternion<float>(g_Camera->m_left, 0.01f).Rotate(g_Camera->m_eye - g_Camera->m_lookAt); g_Camera->UpdateCamera(); break;
 		case 'W':g_Camera->ZoomCamera(); break;
 		case 'S':g_Camera->ZoomCamera(-1.0f); break;
-		case 'Q':break;
-		case 'E':break;
+		case 'Q':g_Camera->RollCamera(1.0f);break;
+		case 'E':g_Camera->RollCamera(-1.0f); break;
+		case 'A':g_Camera->StrafeCamera(); break;
+		case 'D':g_Camera->StrafeCamera(-1.0f); break;
 		}
 
 
