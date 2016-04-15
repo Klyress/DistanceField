@@ -19,8 +19,7 @@ using namespace concurrency::fast_math;
 #include "InitD3D.h"
 #include "Camera.h"
 
-//#include "Sea.h"
-#include "Menger.h"
+#include "Sea.h"
 #include "RayMatchFunc.h"
 #define MAX_LOADSTRING 100
 #define PI 3.1415926535897932f
@@ -39,7 +38,7 @@ INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 D3DContext context;
 RTCamera<float>* g_Camera;
 
-bool shadowOn = true;
+bool shadowOn = false;
 
 
 float Cube4DDE(Vector3<float> point) restrict(amp)
@@ -358,6 +357,7 @@ void Render()
 
 		int x = idx[1];
 		int y = idx[0];
+		float gameTime = w;
 
 		Vector3<float> strideH = xStep * x;
 		Vector3<float> strideV = yStep * y;
@@ -367,7 +367,7 @@ void Render()
 		r.to = leftTopPoint - strideH - strideV;
 		
 		Vector3<float> color;
-		color = Matching(r, threshold, isShadowOn);
+		color = Matching(r, threshold, isShadowOn, gameTime);
 
 		destView.set(idx, unorm4(color.x, color.y, color.z, 1.0f));
 		depthDestView.set(idx, color.w);
@@ -410,6 +410,7 @@ void Render()
 	// we got depth buffer, can do some post effect here
 
 	context.m_pSwapChain->Present(0, 0);
+	time += 0.016f; // assumed 60fps! (...
 	frame++;
 }
 

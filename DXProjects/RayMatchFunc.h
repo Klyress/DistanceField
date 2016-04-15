@@ -29,7 +29,7 @@ float castShadow(const Vector3<float>& p, const Vector3<float>& light, const flo
 	return shadowStrength;
 }
 
-Vector3<float> Matching(Ray<float>& ray, const float threshold, const bool isShadowOn) restrict(amp)
+Vector3<float> Matching(Ray<float>& ray, const float threshold, const bool isShadowOn, const float gameTime) restrict(amp)
 {
 	Vector3<float> dir = ray.getDirection();
 	Vector3<float> p;
@@ -50,6 +50,7 @@ Vector3<float> Matching(Ray<float>& ray, const float threshold, const bool isSha
 	while (numIterate < maxIteration)
 	{
 		p = ray.from + dir * totalDistance;
+		p.w = gameTime;
 		distance = DE(p);
 		totalDistance += distance;
 
@@ -76,7 +77,7 @@ Vector3<float> Matching(Ray<float>& ray, const float threshold, const bool isSha
 		Vector3<float> color;
 		color = GetColor(p);
 		// cast shadow ray, using approm soft shadow
-		Vector3<float> light(-10.0f, 10.0f, -10.0f);
+		Vector3<float> light(0.0f, 1000.0f, 1000.0f);
 		float shadowStrength = 1.0f; // 1.0 means no shadow at all
 		if (isShadowOn)
 		{
@@ -84,12 +85,31 @@ Vector3<float> Matching(Ray<float>& ray, const float threshold, const bool isSha
 		}
 
 		Vector3<float> lightDir = (light - p).Normalize();
-		float intense = clamp(lightDir * normal, 0.0f, 1.0f);
 
-		k = k*0.5f + (intense * 0.5f) * shadowStrength;
+		//float intense = clamp(lightDir * normal, 0.0f, 1.0f);
 
-		color = color * k;
-		color.w = totalDistance;
+		//k = k*0.5f + (intense * 0.5f) * shadowStrength;
+
+		//color = color * k;
+		//color.w = totalDistance;
+
+		float fresnel = 1.0f - max(normal * -ray.dir, 0.0f);
+		fresnel = pow(fresnel, 3.0f) * 0.65f;
+		Vector3<float> reflectColor = getSkyColor(ray.dir.Reflect(normal));
+
+		float diffuse = pow(lightDir * normal * 0.4f + 0.6f, 80.0f);
+
+		Vector3<float> refractedColor = Vector3<float>(0.1f, 0.19f, 0.22f) + color * diffuse * 0.12f;
+
+		color = refractedColor + (reflectColor - refractedColor) * fresnel;
+
+		float atten = max(1.0 - totalDistance * totalDistance * 0.001, 0.0);
+		color = color + Vector3<float>(0.8f, 0.9f, 0.6f) * fabs(p.y) * 0.18 * atten;
+
+		float si = pow(max(ray.dir.Reflect(normal) * lightDir, 0.0f), 60.0f);// *((60.0f + 8.0f) / (3.1415f * 8.0f));
+		Vector3<float> specularColor(si, si, si);
+
+		color = color + specularColor;
 		return color;
 	}
 	else

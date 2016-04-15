@@ -33,6 +33,14 @@ namespace xLib
 			this->z = z;
 			this->w = 1.0f;
 		};
+
+		Vector3(T x, T y, T z, T w) _GPU
+		{
+			this->x = x;
+			this->y = y;
+			this->z = z;
+			this->w = w;
+		};
 		Vector3(T* e) _GPU
 		{
 			x = e[0];
