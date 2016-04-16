@@ -46,25 +46,26 @@ float sea_octave(float u, float v, float choppy) restrict(amp)
 	w1 = w1 + (wavex - w1) * w1;
 	w2 = w2 + (wavey - w2) * w2;
 
-	return pow(1.0f - pow(w1 * w2, 0.65f), 4.0f);
+	return pow(1.0f - pow(w1 * w2, 0.65f), choppy);
 }
 
 
 float SeaHeightMap(Vector3<float> p) restrict(amp)
 {
 	float freq = 0.16f; // frequncy of sea wave
-	float amp = 1.6f;  // height of sea wave
+	float amp = 1.0f;  // height of sea wave
 	float choppy = 4.0f; // choppy of sea wave
 
 	float d, h = 0.0f;
-	float u = p.x;
+	float u = p.x * 0.75f;
 	float v = p.z;
 
 	// this is the combination of 10 different frequency and different direction (important!) waves 
 	// reuse of u, v is based on we don't care where we start to sample the wave because all wave functions are cycle.
-	for (int i = 0; i < 10; i++) 
+	for (int i = 0; i < 6; i++) 
 	{
 		d = sea_octave((u + p.w)*freq, (v + p.w)*freq, choppy);
+		d += sea_octave((u - p.w)*freq, (v - p.w)*freq, choppy);
 		h += d * amp; 
 
 		// do 2d rotate
@@ -106,10 +107,13 @@ Vector3<float> GetColor(Vector3<float> point) restrict(amp)
 
 Vector3<float> getSkyColor(Vector3<float> e) restrict(amp)
 {
-	e.y = max(e.y, 0.0f);
+	float y = max(e.y, 0.0f);
 	Vector3<float> ret;
-	ret.x = pow(1.0f - e.y, 2.0f);
-	ret.y = 1.0f - e.y;
-	ret.z = 0.6f + (1.0f - e.y)*0.4f;
+	//y = fabs(y);
+	y = sqrtf(y);
+	
+	ret.x = pow(1.0f - y, 2.0f);
+	ret.y = 1.0f - y;
+	ret.z = 0.6f + (1.0f - y)*0.4f;
 	return ret;
 }

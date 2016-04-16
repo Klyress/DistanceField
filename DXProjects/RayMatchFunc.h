@@ -44,7 +44,7 @@ Vector3<float> Matching(Ray<float>& ray, const float threshold, const bool isSha
 	float totalDistance = 0.0f;
 
 	int numIterate = 0;
-	int maxIteration = 100;
+	int maxIteration = 500;
 	bool hit = false;
 	Vector3<float> c;
 	while (numIterate < maxIteration)
@@ -72,12 +72,12 @@ Vector3<float> Matching(Ray<float>& ray, const float threshold, const bool isSha
 
 	if (hit)
 	{
-		Vector3<float> normal = GetNormal(p, threshold);
+		Vector3<float> normal = GetNormal(p, totalDistance*totalDistance*0.1f/800.0f);
 
 		Vector3<float> color;
 		color = GetColor(p);
 		// cast shadow ray, using approm soft shadow
-		Vector3<float> light(0.0f, 1000.0f, 1000.0f);
+		Vector3<float> light(0.0f, 100.0f, 10000.0f);
 		float shadowStrength = 1.0f; // 1.0 means no shadow at all
 		if (isShadowOn)
 		{
@@ -94,20 +94,20 @@ Vector3<float> Matching(Ray<float>& ray, const float threshold, const bool isSha
 		//color.w = totalDistance;
 
 		float fresnel = 1.0f - max(normal * -ray.dir, 0.0f);
-		fresnel = pow(fresnel, 3.0f) * 0.65f;
-		Vector3<float> reflectColor = getSkyColor(ray.dir.Reflect(normal));
+		fresnel = pow(fresnel, 3.0f) * 0.15f;
+		Vector3<float> reflectColor = getSkyColor((ray.dir).Reflect(normal));
 
 		float diffuse = pow(lightDir * normal * 0.4f + 0.6f, 80.0f);
 
-		Vector3<float> refractedColor = Vector3<float>(0.1f, 0.19f, 0.22f) + color * diffuse * 0.12f;
+		Vector3<float> refractedColor = Vector3<float>(0.1f, 0.19f, 0.22f) +color * diffuse * 0.12f;
 
 		color = refractedColor + (reflectColor - refractedColor) * fresnel;
 
-		float atten = max(1.0 - totalDistance * totalDistance * 0.001, 0.0);
-		color = color + Vector3<float>(0.8f, 0.9f, 0.6f) * fabs(p.y) * 0.18 * atten;
+		float atten = max(1.0 - totalDistance * totalDistance * 0.001f, 0.0);
+		color = color + Vector3<float>(0.8f, 0.9f, 0.6f) * (p.y - 1.0f) * 0.18f * atten;
 
-		float si = pow(max(ray.dir.Reflect(normal) * lightDir, 0.0f), 60.0f);// *((60.0f + 8.0f) / (3.1415f * 8.0f));
-		Vector3<float> specularColor(si, si, si);
+		float si = pow(max(ray.dir.Reflect(normal) * lightDir, 0.0f), 60.0f) *((60.0f + 8.0f) / (3.1415f * 8.0f));
+		Vector3<float> specularColor(252.0f*si/255.0f, 70.0f*si/255.0f, 53.0f*si/255.0f);
 
 		color = color + specularColor;
 		return color;
@@ -115,6 +115,7 @@ Vector3<float> Matching(Ray<float>& ray, const float threshold, const bool isSha
 	else
 	{
 		Vector3<float> color(0.0f, 0.0f, 0.0f);
+		color = getSkyColor(ray.dir);
 		color.w = 1.0f;
 		return color;
 	}

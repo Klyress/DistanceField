@@ -139,7 +139,7 @@ namespace xLib
 
 		Vector3<T> Reflect(Vector3<T> normal) _GPU
 		{
-			return (*this - normal * (*this * normal * 2.0f));
+			return (*this - normal * (*this * normal) * 2.0f);
 		}
 
 		// Utility for type cast to other API
