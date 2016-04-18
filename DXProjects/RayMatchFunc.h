@@ -72,6 +72,7 @@ Vector3<float> Matching(Ray<float>& ray, const float threshold, const bool isSha
 
 	if (hit)
 	{
+		p.w = gameTime;
 		Vector3<float> normal = GetNormal(p, totalDistance*totalDistance*0.1f/800.0f);
 
 		Vector3<float> color;
@@ -85,6 +86,7 @@ Vector3<float> Matching(Ray<float>& ray, const float threshold, const bool isSha
 		}
 
 		Vector3<float> lightDir = (light - p).Normalize();
+		//lightDir = Vector3<float>(0.f, 100.f, 100.0f).Normalize();
 
 		//float intense = clamp(lightDir * normal, 0.0f, 1.0f);
 
@@ -93,23 +95,27 @@ Vector3<float> Matching(Ray<float>& ray, const float threshold, const bool isSha
 		//color = color * k;
 		//color.w = totalDistance;
 
-		float fresnel = 1.0f - max(normal * -ray.dir, 0.0f);
-		fresnel = pow(fresnel, 3.0f) * 0.15f;
+		float k = normal * (-ray.dir);
+		float fresnel = 1.0f - max(normal * (-ray.dir), 0.0f);
+		fresnel = pow(fresnel, 3.0f) * 0.65f;
 		Vector3<float> reflectColor = getSkyColor((ray.dir).Reflect(normal));
 
 		float diffuse = pow(lightDir * normal * 0.4f + 0.6f, 80.0f);
 
-		Vector3<float> refractedColor = Vector3<float>(0.1f, 0.19f, 0.22f) +color * diffuse * 0.12f;
+		Vector3<float> refractedColor = Vector3<float>(0.1f, 0.19f, 0.22f) + color * diffuse * 0.12f;
 
-		color = refractedColor + (reflectColor - refractedColor) * fresnel;
+		color = refractedColor +(reflectColor - refractedColor) * fresnel;
 
 		float atten = max(1.0 - totalDistance * totalDistance * 0.001f, 0.0);
 		color = color + Vector3<float>(0.8f, 0.9f, 0.6f) * (p.y - 1.0f) * 0.18f * atten;
 
 		float si = pow(max(ray.dir.Reflect(normal) * lightDir, 0.0f), 60.0f) *((60.0f + 8.0f) / (3.1415f * 8.0f));
-		Vector3<float> specularColor(252.0f*si/255.0f, 70.0f*si/255.0f, 53.0f*si/255.0f);
+		//Vector3<float> specularColor(252.0f/255.0f, 70.0f/255.0f, 53.0f/255.0f);
+		Vector3<float> specularColor(1.0f, 1.0f, 1.0f);
 
-		color = color + specularColor;
+		color = color + specularColor * si;
+		//color = Vector3<float>(fresnel, fresnel, fresnel);
+		//color = Vector3<float>(k, k, k);
 		return color;
 	}
 	else

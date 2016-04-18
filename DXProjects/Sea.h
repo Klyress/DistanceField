@@ -6,9 +6,9 @@ using namespace xLib;
 float rand(float u, float v) restrict(amp)
 {
 	float h = u * 127.1f + v * 311.7f;
-	float k = sin(h) * 43758.5453123f;
-	float ik = floorf(k);
-	return k - ik;
+	float ik = floorf(sin(h) * 43758.5453123f);
+	float fk = sin(h) * 43758.5453123f - ik;
+	return fk;
 }
 
 float RandomNoise(float u, float v) restrict(amp)
@@ -35,6 +35,7 @@ float RandomNoise(float u, float v) restrict(amp)
 float sea_octave(float u, float v, float choppy) restrict(amp)
 {
 	float r = RandomNoise(u, v);
+
 	u = u + r;
 	v = v + r;
 	float w1 = 1.0f - fabs(sin(u));
@@ -52,9 +53,9 @@ float sea_octave(float u, float v, float choppy) restrict(amp)
 
 float SeaHeightMap(Vector3<float> p) restrict(amp)
 {
-	float freq = 0.16f; // frequncy of sea wave
-	float amp = 1.0f;  // height of sea wave
-	float choppy = 4.0f; // choppy of sea wave
+	float freq = 0.016f * 10.0f; // frequncy of sea wave
+	float amp = 0.6f;  // height of sea wave
+	float choppy = 2.0f; // choppy of sea wave
 
 	float d, h = 0.0f;
 	float u = p.x * 0.75f;
@@ -62,7 +63,7 @@ float SeaHeightMap(Vector3<float> p) restrict(amp)
 
 	// this is the combination of 10 different frequency and different direction (important!) waves 
 	// reuse of u, v is based on we don't care where we start to sample the wave because all wave functions are cycle.
-	for (int i = 0; i < 6; i++) 
+	for (int i = 0; i < 5; i++) 
 	{
 		d = sea_octave((u + p.w)*freq, (v + p.w)*freq, choppy);
 		d += sea_octave((u - p.w)*freq, (v - p.w)*freq, choppy);
@@ -93,6 +94,7 @@ float DE(Vector3<float> point) restrict(cpu)
 Vector3<float> GetNormal(Vector3<float> point, float delta) restrict(amp)
 {
 	Vector3<float> n;
+	//delta = 0.00001f;
 	n.y = SeaHeightMap(point);
 	n.x = SeaHeightMap(Vector3<float>(point.x + delta, point.y, point.z, point.w)) - n.y;
 	n.z = SeaHeightMap(Vector3<float>(point.x, point.y, point.z + delta, point.w)) - n.y;
