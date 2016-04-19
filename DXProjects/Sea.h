@@ -6,15 +6,16 @@ using namespace xLib;
 float rand(float u, float v) restrict(amp)
 {
 	float h = u * 127.1f + v * 311.7f;
-	float ik = floorf(sin(h) * 43758.5453123f);
-	float fk = sin(h) * 43758.5453123f - ik;
+	float k = sin(h) * 4.5453123f;
+	float ik = floor(sin(h) * 4.5453123f);
+	float fk = sin(h) * 4.5453123f - ik;
 	return fk;
 }
 
 float RandomNoise(float u, float v) restrict(amp)
 {
-	float iu = floorf(u);
-	float iv = floorf(v);
+	float iu = floor(u);
+	float iv = floor(v);
 	float fu = u - iu;
 	float fv = v - iv;
 
@@ -53,9 +54,9 @@ float sea_octave(float u, float v, float choppy) restrict(amp)
 
 float SeaHeightMap(Vector3<float> p) restrict(amp)
 {
-	float freq = 0.016f * 10.0f; // frequncy of sea wave
+	float freq = 0.16f; // frequncy of sea wave
 	float amp = 0.6f;  // height of sea wave
-	float choppy = 2.0f; // choppy of sea wave
+	float choppy = 4.0f; // choppy of sea wave
 
 	float d, h = 0.0f;
 	float u = p.x * 0.75f;
@@ -63,7 +64,7 @@ float SeaHeightMap(Vector3<float> p) restrict(amp)
 
 	// this is the combination of 10 different frequency and different direction (important!) waves 
 	// reuse of u, v is based on we don't care where we start to sample the wave because all wave functions are cycle.
-	for (int i = 0; i < 5; i++) 
+	for (int i = 0; i < 6; i++) 
 	{
 		d = sea_octave((u + p.w)*freq, (v + p.w)*freq, choppy);
 		d += sea_octave((u - p.w)*freq, (v - p.w)*freq, choppy);

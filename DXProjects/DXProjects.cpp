@@ -534,7 +534,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	GetClientRect(hWnd, &rc);
 	UINT width = rc.right - rc.left;
 	UINT height = rc.bottom - rc.top;
-	g_Camera = new RTCamera<float>(Vector3<float>(10.0f, 10.0f, 0.f), Vector3<float>(0.0f, 0.0f, 0.0f), Vector3<float>(0.0f, 1.0f, 0.0f), 3.14159265f / 360.0f * 120.0f, width*DOWN_SAMPLE, height*DOWN_SAMPLE);
+	g_Camera = new RTCamera<float>(Vector3<float>(10.0f, 3.5f, 0.f), Vector3<float>(0.0f, 3.5f, 0.0f), Vector3<float>(0.0f, 1.0f, 0.0f), 3.14159265f / 360.0f * 90.0f, width*DOWN_SAMPLE, height*DOWN_SAMPLE);
 
 	return TRUE;
 }

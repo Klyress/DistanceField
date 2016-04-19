@@ -78,7 +78,7 @@ Vector3<float> Matching(Ray<float>& ray, const float threshold, const bool isSha
 		Vector3<float> color;
 		color = GetColor(p);
 		// cast shadow ray, using approm soft shadow
-		Vector3<float> light(0.0f, 100.0f, 10000.0f);
+		Vector3<float> light(0.0f, 10000.0f, 10000.0f);
 		float shadowStrength = 1.0f; // 1.0 means no shadow at all
 		if (isShadowOn)
 		{
@@ -109,13 +109,24 @@ Vector3<float> Matching(Ray<float>& ray, const float threshold, const bool isSha
 		float atten = max(1.0 - totalDistance * totalDistance * 0.001f, 0.0);
 		color = color + Vector3<float>(0.8f, 0.9f, 0.6f) * (p.y - 1.0f) * 0.18f * atten;
 
-		float si = pow(max(ray.dir.Reflect(normal) * lightDir, 0.0f), 60.0f) *((60.0f + 8.0f) / (3.1415f * 8.0f));
+		float si = pow(max(ray.dir.Reflect(normal) * lightDir, 0.0f), 300.0f) *((300.0f + 8.0f) / (3.1415f * 8.0f));
 		//Vector3<float> specularColor(252.0f/255.0f, 70.0f/255.0f, 53.0f/255.0f);
 		Vector3<float> specularColor(1.0f, 1.0f, 1.0f);
 
 		color = color + specularColor * si;
+
+		//float fogIntense = min(totalDistance / 3000.0f, 1.0f);
+		//color = color + (Vector3<float>(0.8f, 0.8f, 0.8f) - color) * fogIntense;
 		//color = Vector3<float>(fresnel, fresnel, fresnel);
 		//color = Vector3<float>(k, k, k);
+
+		float r = clamp((ray.dir.y - 0.0f) / (-0.05f - 0.0f), 0.0, 1.0);
+		r = r * r * (3.0f - 2.0f * r);
+		Vector3<float> skyColor = getSkyColor(dir);
+		color = skyColor + (color - skyColor) * r;
+		color.x = pow(color.x, 0.75f);
+		color.y = pow(color.y, 0.75f);
+		color.z = pow(color.z, 0.75f);
 		return color;
 	}
 	else
